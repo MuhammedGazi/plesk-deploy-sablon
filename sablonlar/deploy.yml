@@ -1,0 +1,48 @@
+# .github/workflows/deploy.yml
+# main dalına her push'ta projeyi derler ve çıktıyı "release" dalına koyar.
+# Plesk Git, "release" dalını sitenin klasörüne dağıtır.
+
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  # .csproj dosyasının bulunduğu klasör (depo köküne göre)
+  PROJECT_PATH: src/MyApp
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # Angular kullanıyorsan aç ve yolları kendine göre düzenle:
+      # - uses: actions/setup-node@v4
+      #   with:
+      #     node-version: '22'
+      # - run: npm ci && npx ng build --configuration production
+      #   working-directory: client
+      # - run: mkdir -p ${{ env.PROJECT_PATH }}/wwwroot && cp -r client/dist/*/browser/* ${{ env.PROJECT_PATH }}/wwwroot/
+
+      - run: dotnet publish ${{ env.PROJECT_PATH }} -c Release -o out
+
+      - name: Push build output to release branch
+        run: |
+          mkdir -p out/logs && touch out/logs/.keep
+          cd out
+          git init -b release
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -A
+          git commit -m "release ${GITHUB_SHA::7}"
+          git push --force "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" release

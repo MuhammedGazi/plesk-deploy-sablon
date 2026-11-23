@@ -1,0 +1,9 @@
+<!--
+  Bu iki satırı projenin .csproj dosyasındaki <PropertyGroup> içine ekle.
+-->
+<PropertyGroup>
+  <!-- GitHub Actions Linux'ta derler; apphost üretilmezse web.config "dotnet MyApp.dll" ile çalışır -->
+  <UseAppHost>false</UseAppHost>
+  <!-- web.config'i SDK değil, biz yönetiyoruz (shadow copy ayarı kaybolmasın) -->
+  <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
+</PropertyGroup>
